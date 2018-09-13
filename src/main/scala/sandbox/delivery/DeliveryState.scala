@@ -4,28 +4,25 @@ import sandbox.fsm.DeferSignalState
 
 sealed trait DeliveryState extends DeferSignalState[Delivery] {
   override type SIGNAL = DeliverySignal
-  type STATE = DeferSignalState[Delivery]
 
   override def handle(signal: DeliverySignal): STATE =
     signal match {
-      case s: Win          => handleWin(s)
-      case s: ViewProgress => handleViewProgress(s)
-      case s: ViewComplete => handleViewComplete(s)
-      case s: Click        => handleClick(s)
+      case s: DeliverySignal.Deliver => handleDeliver(s)
+      case s: DeliverySignal.Impress => handleImpress(s)
+      case s: DeliverySignal.Act     => handleAct(s)
     }
 
-  def handleWin(signal: Win): STATE
-  def handleViewProgress(signal: ViewProgress): STATE
-  def handleViewComplete(signal: ViewComplete): STATE
-  def handleClick(signal: Click): STATE
+  def handleDeliver(signal: DeliverySignal.Deliver): STATE
+  def handleImpress(signal: DeliverySignal.Impress): STATE
+  def handleAct(signal: DeliverySignal.Act): STATE
 
   def transitImpressed(prev: DeliveryState): STATE =
     transit {
-      Impressed(prev)
+      DeliveryState.Impressed(prev)
     }
   def transitActioned(prev: DeliveryState): STATE =
     transit {
-      Actioned(prev)
+      DeliveryState.Actioned(prev)
     }
 
   override def deadLetter(signal: DeliverySignal): STATE = {
@@ -34,70 +31,79 @@ sealed trait DeliveryState extends DeferSignalState[Delivery] {
   }
 }
 
-case class UnDelivered(initialDeferredSignals: Set[DeliverySignal] = Set(),
+object DeliveryState {
+
+  case class UnDelivered(initialDeferredSignals: Set[DeliverySignal] = Set(),
+                         initialHandledSignals: Set[DeliverySignal] = Set())
+      extends DeliveryState {
+    val stateId: Byte = 0
+
+    println("Delivered")
+
+    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+      transitImpressed(this)
+
+    def handleImpress(signal: DeliverySignal.Impress): STATE =
+      defer(signal)
+
+    def handleAct(signal: DeliverySignal.Act): STATE =
+      defer(signal)
+
+  }
+
+  case class Delivered(initialDeferredSignals: Set[DeliverySignal] = Set(),
                        initialHandledSignals: Set[DeliverySignal] = Set())
-    extends DeliveryState {
+      extends DeliveryState {
+    val stateId: Byte = 1
 
-  println("Delivered")
+    println("Delivered")
 
-  def handleWin(signal: Win): STATE =
-    transitImpressed(this)
-  def handleViewProgress(signal: ViewProgress): STATE =
-    defer(signal)
-  def handleViewComplete(signal: ViewComplete): STATE =
-    defer(signal)
-  def handleClick(signal: Click): STATE =
-    defer(signal)
+    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+      transitImpressed(this)
 
-}
+    def handleImpress(signal: DeliverySignal.Impress): STATE =
+      defer(signal)
 
-case class Delivered(initialDeferredSignals: Set[DeliverySignal] = Set(),
-                     initialHandledSignals: Set[DeliverySignal] = Set())
-    extends DeliveryState {
+    def handleAct(signal: DeliverySignal.Act): STATE =
+      defer(signal)
 
-  println("Delivered")
+  }
 
-  def handleWin(signal: Win): STATE =
-    transitImpressed(this)
-  def handleViewProgress(signal: ViewProgress): STATE =
-    defer(signal)
-  def handleViewComplete(signal: ViewComplete): STATE =
-    defer(signal)
-  def handleClick(signal: Click): STATE =
-    defer(signal)
+  case class Impressed(prevState: DeliveryState,
+                       initialDeferredSignals: Set[DeliverySignal] = Set(),
+                       initialHandledSignals: Set[DeliverySignal] = Set())
+      extends DeliveryState {
+    val stateId: Byte = 2
 
-}
+    println("Impressed")
 
-case class Impressed(prevState: DeliveryState,
-                     initialDeferredSignals: Set[DeliverySignal] = Set(),
-                     initialHandledSignals: Set[DeliverySignal] = Set())
-    extends DeliveryState {
+    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+      deadLetter(signal)
 
-  println("Impressed")
+    def handleImpress(signal: DeliverySignal.Impress): STATE =
+      transitActioned(this)
 
-  def handleWin(signal: Win): STATE =
-    deadLetter(signal)
-  def handleViewProgress(signal: ViewProgress): STATE =
-    transitActioned(this)
-  def handleViewComplete(signal: ViewComplete): STATE =
-    transitActioned(this)
-  def handleClick(signal: Click): STATE =
-    transitActioned(this)
-}
+    def handleAct(signal: DeliverySignal.Act): STATE =
+      transitActioned(this)
 
-case class Actioned(prevState: DeliveryState,
-                    initialDeferredSignals: Set[DeliverySignal] = Set(),
-                    initialHandledSignals: Set[DeliverySignal] = Set())
-    extends DeliveryState {
+  }
 
-  println("Actioned")
+  case class Actioned(prevState: DeliveryState,
+                      initialDeferredSignals: Set[DeliverySignal] = Set(),
+                      initialHandledSignals: Set[DeliverySignal] = Set())
+      extends DeliveryState {
+    val stateId: Byte = 4
 
-  def handleWin(signal: Win): STATE =
-    deadLetter(signal)
-  def handleViewProgress(signal: ViewProgress): STATE =
-    transitActioned(this)
-  def handleViewComplete(signal: ViewComplete): STATE =
-    transitActioned(this)
-  def handleClick(signal: Click): STATE =
-    transitActioned(this)
+    println("Actioned")
+
+    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+      deadLetter(signal)
+
+    def handleImpress(signal: DeliverySignal.Impress): STATE =
+      transitActioned(this)
+
+    def handleAct(signal: DeliverySignal.Act): STATE =
+      transitActioned(this)
+  }
+
 }

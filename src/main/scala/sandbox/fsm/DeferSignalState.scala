@@ -2,13 +2,13 @@ package sandbox.fsm
 
 import scala.collection.mutable
 
-import scala.reflect.ClassTag
-
 /**
   * ハンドル可能な状態になるまでイベントのハンドリングを繰り越す
   * @tparam T
   */
 trait DeferSignalState[T <: Entity] extends State[T] {
+
+  type STATE = DeferSignalState[T]
 
   override def handle(signal: SIGNAL): DeferSignalState[T]
   val initialDeferredSignals: Set[SIGNAL]
@@ -37,6 +37,6 @@ trait DeferSignalState[T <: Entity] extends State[T] {
       nextState
   }
 
-  def deadLetter(event: SIGNAL): State[T]
+  def deadLetter(signal: SIGNAL): State[T]
 
 }

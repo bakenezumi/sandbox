@@ -7,11 +7,12 @@ class DeliveryStateSpec extends FlatSpec {
 
   "test" should "test" in {
 
-    val event1: DeliverySignal = Win("001", null, SignalLifeCycle.Occur)
+    val event1: DeliverySignal =
+      DeliverySignal.Deliver("001", None, SignalLifeCycle.Occur)
 
-    val event2 = Click("002", null, SignalLifeCycle.Occur)
+    val event2 = DeliverySignal.Act("002", None, SignalLifeCycle.Occur)
 
-    val state1: DeliveryState = UnDelivered()
+    val state1: DeliveryState = DeliveryState.UnDelivered()
 
     val state2: DeliveryState =
       state1.handle(event2).asInstanceOf[DeliveryState]

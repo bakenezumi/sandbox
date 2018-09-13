@@ -11,20 +11,21 @@ sealed trait DeliverySignal extends Signal[Delivery] {
   val body: Option[ByteBuffer]
 }
 
-case class Win(id: String, body: Option[ByteBuffer], lifeCycle: SignalLifeCycle)
-    extends DeliverySignal
+object DeliverySignal {
 
-case class ViewProgress(id: String,
-                        body: Option[ByteBuffer],
-                        lifeCycle: SignalLifeCycle)
-    extends DeliverySignal
+  case class Deliver(id: String,
+                     body: Option[ByteBuffer],
+                     lifeCycle: SignalLifeCycle)
+      extends DeliverySignal
 
-case class ViewComplete(id: String,
-                        body: Option[ByteBuffer],
-                        lifeCycle: SignalLifeCycle)
-    extends DeliverySignal
+  case class Impress(id: String,
+                     body: Option[ByteBuffer],
+                     lifeCycle: SignalLifeCycle)
+      extends DeliverySignal
 
-case class Click(id: String,
+  case class Act(id: String,
                  body: Option[ByteBuffer],
                  lifeCycle: SignalLifeCycle)
-    extends DeliverySignal
+      extends DeliverySignal
+
+}
