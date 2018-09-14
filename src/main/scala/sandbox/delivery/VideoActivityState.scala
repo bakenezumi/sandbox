@@ -2,7 +2,7 @@ package sandbox.delivery
 
 import sandbox.fsm.DeferSignalState
 
-sealed trait ActivityState extends DeferSignalState[VideoActivity] {
+sealed trait VideoActivityState extends DeferSignalState[VideoActivity] {
   override type SIGNAL = VideioActivitySignal
 
   override def handle(signal: VideioActivitySignal): STATE =
@@ -16,11 +16,11 @@ sealed trait ActivityState extends DeferSignalState[VideoActivity] {
   def handleViewComplete(signal: VideioActivitySignal.ViewComplete): STATE
   def handleClick(signal: VideioActivitySignal.Click): STATE
 
-  def transitImpressed(prev: ActivityState): STATE = transit {
-    ActivityState.UnDelivered()
+  def transitImpressed(prev: VideoActivityState): STATE = transit {
+    VideoActivityState.UnDelivered()
   }
   def transitActioned(prev: DeliveryState): STATE = transit {
-    ActivityState.UnDelivered()
+    VideoActivityState.UnDelivered()
   }
 
   override def deadLetter(signal: VideioActivitySignal): STATE = {
@@ -29,12 +29,12 @@ sealed trait ActivityState extends DeferSignalState[VideoActivity] {
   }
 }
 
-object ActivityState {
+object VideoActivityState {
 
   case class UnDelivered(
       initialDeferredSignals: Set[VideioActivitySignal] = Set(),
       initialHandledSignals: Set[VideioActivitySignal] = Set())
-      extends ActivityState {
+      extends VideoActivityState {
     override def handleViewProgress(
         signal: VideioActivitySignal.ViewProgress): STATE = ???
 

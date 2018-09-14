@@ -1,13 +1,12 @@
 package sandbox.delivery
 
-import sandbox.fsm.{DeferSignalState, State}
+import sandbox.fsm.DeferSignalState
 
 sealed trait DeliverySourceState extends DeferSignalState[DeliverySource] {
 
   override type SIGNAL = DeliverySourceSignal
 
-  override def deadLetter(
-      signal: DeliverySourceSignal): State[DeliverySource] = {
+  override def deadLetter(signal: DeliverySourceSignal): STATE = {
     println("Dead letter:" + signal)
     this
   }
