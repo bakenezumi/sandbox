@@ -16,16 +16,16 @@ sealed trait DeliveryState extends DeferSignalState[Delivery] {
   def handleImpress(signal: DeliverySignal.Impress): STATE
   def handleAct(signal: DeliverySignal.Act): STATE
 
-  def transitImpressed(prev: DeliveryState): STATE =
-    transit {
-      DeliveryState.Impressed(prev)
+  def transitImpressed(signal: SIGNAL): STATE =
+    transit(signal) { _ =>
+      DeliveryState.Impressed()
     }
-  def transitActioned(prev: DeliveryState): STATE =
-    transit {
-      DeliveryState.Actioned(prev)
+  def transitActioned(signal: SIGNAL): STATE =
+    transit(signal) { _ =>
+      DeliveryState.Actioned()
     }
 
-  override def deadLetter(signal: DeliverySignal): STATE = {
+  override def deadLetter(signal: SIGNAL): STATE = {
     println("Dead letter:" + signal)
     this
   }
@@ -38,10 +38,10 @@ object DeliveryState {
       extends DeliveryState {
     val stateId: Byte = 0
 
-    println("Delivered")
+    println("##[UnDelivered]")
 
     def handleDeliver(signal: DeliverySignal.Deliver): STATE =
-      transitImpressed(this)
+      transitImpressed(signal)
 
     def handleImpress(signal: DeliverySignal.Impress): STATE =
       defer(signal)
@@ -56,10 +56,10 @@ object DeliveryState {
       extends DeliveryState {
     val stateId: Byte = 1
 
-    println("Delivered")
+    println("##[Delivered]")
 
     def handleDeliver(signal: DeliverySignal.Deliver): STATE =
-      transitImpressed(this)
+      transitImpressed(signal)
 
     def handleImpress(signal: DeliverySignal.Impress): STATE =
       defer(signal)
@@ -69,41 +69,39 @@ object DeliveryState {
 
   }
 
-  case class Impressed(prevState: DeliveryState,
-                       initialDeferredSignals: Set[DeliverySignal] = Set(),
+  case class Impressed(initialDeferredSignals: Set[DeliverySignal] = Set(),
                        initialHandledSignals: Set[DeliverySignal] = Set())
       extends DeliveryState {
     val stateId: Byte = 2
 
-    println("Impressed")
+    println("##[Impressed]")
 
     def handleDeliver(signal: DeliverySignal.Deliver): STATE =
       deadLetter(signal)
 
     def handleImpress(signal: DeliverySignal.Impress): STATE =
-      transitActioned(this)
+      transitActioned(signal)
 
     def handleAct(signal: DeliverySignal.Act): STATE =
-      transitActioned(this)
+      transitActioned(signal)
 
   }
 
-  case class Actioned(prevState: DeliveryState,
-                      initialDeferredSignals: Set[DeliverySignal] = Set(),
+  case class Actioned(initialDeferredSignals: Set[DeliverySignal] = Set(),
                       initialHandledSignals: Set[DeliverySignal] = Set())
       extends DeliveryState {
     val stateId: Byte = 4
 
-    println("Actioned")
+    println("##[Actioned]")
 
     def handleDeliver(signal: DeliverySignal.Deliver): STATE =
       deadLetter(signal)
 
     def handleImpress(signal: DeliverySignal.Impress): STATE =
-      transitActioned(this)
+      transitActioned(signal)
 
     def handleAct(signal: DeliverySignal.Act): STATE =
-      transitActioned(this)
+      transitActioned(signal)
   }
 
 }

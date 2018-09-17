@@ -16,10 +16,10 @@ sealed trait VideoActivityState extends DeferSignalState[VideoActivity] {
   def handleViewComplete(signal: VideioActivitySignal.ViewComplete): STATE
   def handleClick(signal: VideioActivitySignal.Click): STATE
 
-  def transitImpressed(prev: VideoActivityState): STATE = transit {
+  def transitImpressed(signal: SIGNAL): STATE = transit(signal) {_ =>
     VideoActivityState.UnDelivered()
   }
-  def transitActioned(prev: DeliveryState): STATE = transit {
+  def transitActioned(signal: SIGNAL): STATE = transit(signal) {_ =>
     VideoActivityState.UnDelivered()
   }
 

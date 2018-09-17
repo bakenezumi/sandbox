@@ -20,7 +20,6 @@ trait DeferSignalState[T <: Entity] extends State[T] {
   final lazy val handledSignals: mutable.Set[SIGNAL] =
     initialHandledSignals.foldLeft(mutable.Set[SIGNAL]())(_ + _)
 
-
   final def defer(signal: SIGNAL): STATE = {
     println("defer:" + signal)
     deferredSignals += signal
@@ -32,17 +31,15 @@ trait DeferSignalState[T <: Entity] extends State[T] {
     handledSignals += signal
     handleWithRerun(signal)
   }
-
   def handleWithRerun(signal: SIGNAL): STATE
 
+  protected def transit(signal: SIGNAL)(handler: SIGNAL => STATE): STATE = {
+    val nextState = handler(signal)
 
-  protected def transit(thunk: => STATE): STATE = {
-    val nextState  = thunk
-
-    for(signal <- deferredSignals)  {
+    for (signal <- deferredSignals) {
       println("rerun:" + signal)
       val kk = nextState.handle(signal.asInstanceOf[nextState.SIGNAL])
-      if(kk != nextState) {
+      if (kk != nextState) {
 
         println("rerun success:" + signal)
 
