@@ -5,7 +5,7 @@ import sandbox.fsm.DeferSignalState
 sealed trait DeliveryState extends DeferSignalState[Delivery] {
   override type SIGNAL = DeliverySignal
 
-  override def handle(signal: DeliverySignal): STATE =
+  override def handleWithRerun(signal: DeliverySignal): STATE =
     signal match {
       case s: DeliverySignal.Deliver => handleDeliver(s)
       case s: DeliverySignal.Impress => handleImpress(s)

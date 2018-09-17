@@ -10,8 +10,6 @@ trait DeferSignalState[T <: Entity] extends State[T] {
 
   type STATE = DeferSignalState[T]
 
-  override def handle(signal: SIGNAL): STATE
-
   val initialDeferredSignals: Set[SIGNAL]
 
   final lazy val deferredSignals: mutable.Set[SIGNAL] =
@@ -22,20 +20,36 @@ trait DeferSignalState[T <: Entity] extends State[T] {
   final lazy val handledSignals: mutable.Set[SIGNAL] =
     initialHandledSignals.foldLeft(mutable.Set[SIGNAL]())(_ + _)
 
+
   final def defer(signal: SIGNAL): STATE = {
     println("defer:" + signal)
     deferredSignals += signal
     this
   }
 
-  protected def transit(thunk: => STATE): STATE = {
-    val nextState = thunk
+  final def handle(signal: SIGNAL): STATE = {
+    println("handle:" + signal)
+    handledSignals += signal
+    handleWithRerun(signal)
+  }
 
-    if (deferredSignals.nonEmpty)
-      nextState
-        .handle(deferredSignals.head.asInstanceOf[nextState.SIGNAL])
-    else
-      nextState
+  def handleWithRerun(signal: SIGNAL): STATE
+
+
+  protected def transit(thunk: => STATE): STATE = {
+    val nextState  = thunk
+
+    for(signal <- deferredSignals)  {
+      println("rerun:" + signal)
+      val kk = nextState.handle(signal.asInstanceOf[nextState.SIGNAL])
+      if(kk != nextState) {
+
+        println("rerun success:" + signal)
+
+        return kk
+      }
+    }
+    nextState
   }
 
   def deadLetter(signal: SIGNAL): STATE

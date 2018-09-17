@@ -5,7 +5,7 @@ import sandbox.fsm.DeferSignalState
 sealed trait VideoActivityState extends DeferSignalState[VideoActivity] {
   override type SIGNAL = VideioActivitySignal
 
-  override def handle(signal: VideioActivitySignal): STATE =
+  override def handleWithRerun(signal: VideioActivitySignal): STATE =
     signal match {
       case s: VideioActivitySignal.ViewProgress => handleViewProgress(s)
       case s: VideioActivitySignal.ViewComplete => handleViewComplete(s)
