@@ -3,7 +3,7 @@ package sandbox.fsm
 import scala.collection.mutable
 
 /**
-  * ハンドル可能な状態になるまでイベントのハンドリングを繰り越す
+  * 処理できないイベントを持ち越し、ハンドル可能な状態になるまでハンドリングを繰り越す
   * @tparam T
   */
 trait DeferSignalState[T <: Entity] extends State[T] {
@@ -29,6 +29,7 @@ trait DeferSignalState[T <: Entity] extends State[T] {
     handledSignals += signal
     handleWithRerun(signal)
   }
+
   def handleWithRerun(signal: SIGNAL): DeferSignalState[T]
 
   protected def transit(signal: SIGNAL)(
@@ -39,7 +40,8 @@ trait DeferSignalState[T <: Entity] extends State[T] {
       println("rerun:" + signal)
       val kk = nextState.handle(signal.asInstanceOf[nextState.SIGNAL])
       if (kk != nextState) {
-
+        // TODO: 状態の永続化
+        deferredSignals -= signal
         println("rerun success:" + signal)
 
         return kk
