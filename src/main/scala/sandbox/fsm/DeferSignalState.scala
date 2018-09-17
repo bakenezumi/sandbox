@@ -8,8 +8,6 @@ import scala.collection.mutable
   */
 trait DeferSignalState[T <: Entity] extends State[T] {
 
-  type STATE = DeferSignalState[T]
-
   val initialDeferredSignals: Set[SIGNAL]
 
   final lazy val deferredSignals: mutable.Set[SIGNAL] =
@@ -20,20 +18,21 @@ trait DeferSignalState[T <: Entity] extends State[T] {
   final lazy val handledSignals: mutable.Set[SIGNAL] =
     initialHandledSignals.foldLeft(mutable.Set[SIGNAL]())(_ + _)
 
-  final def defer(signal: SIGNAL): STATE = {
+  final def defer(signal: SIGNAL): DeferSignalState[T] = {
     println("defer:" + signal)
     deferredSignals += signal
     this
   }
 
-  final def handle(signal: SIGNAL): STATE = {
+  final def handle(signal: SIGNAL): DeferSignalState[T] = {
     println("handle:" + signal)
     handledSignals += signal
     handleWithRerun(signal)
   }
-  def handleWithRerun(signal: SIGNAL): STATE
+  def handleWithRerun(signal: SIGNAL): DeferSignalState[T]
 
-  protected def transit(signal: SIGNAL)(handler: SIGNAL => STATE): STATE = {
+  protected def transit(signal: SIGNAL)(
+      handler: SIGNAL => DeferSignalState[T]): DeferSignalState[T] = {
     val nextState = handler(signal)
 
     for (signal <- deferredSignals) {
@@ -49,6 +48,6 @@ trait DeferSignalState[T <: Entity] extends State[T] {
     nextState
   }
 
-  def deadLetter(signal: SIGNAL): STATE
+  def deadLetter(signal: SIGNAL): DeferSignalState[T]
 
 }

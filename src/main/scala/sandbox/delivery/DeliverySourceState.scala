@@ -6,7 +6,7 @@ sealed trait DeliverySourceState extends DeferSignalState[DeliverySource] {
 
   override type SIGNAL = DeliverySourceSignal
 
-  override def deadLetter(signal: DeliverySourceSignal): STATE = {
+  override def deadLetter(signal: DeliverySourceSignal): DeliverySourceState = {
     println("Dead letter:" + signal)
     this
   }

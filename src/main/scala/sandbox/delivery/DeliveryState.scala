@@ -5,27 +5,28 @@ import sandbox.fsm.DeferSignalState
 sealed trait DeliveryState extends DeferSignalState[Delivery] {
   override type SIGNAL = DeliverySignal
 
-  override def handleWithRerun(signal: DeliverySignal): STATE =
+  override def handleWithRerun(
+      signal: DeliverySignal): DeferSignalState[Delivery] =
     signal match {
       case s: DeliverySignal.Deliver => handleDeliver(s)
       case s: DeliverySignal.Impress => handleImpress(s)
       case s: DeliverySignal.Act     => handleAct(s)
     }
 
-  def handleDeliver(signal: DeliverySignal.Deliver): STATE
-  def handleImpress(signal: DeliverySignal.Impress): STATE
-  def handleAct(signal: DeliverySignal.Act): STATE
+  def handleDeliver(signal: DeliverySignal.Deliver): DeferSignalState[Delivery]
+  def handleImpress(signal: DeliverySignal.Impress): DeferSignalState[Delivery]
+  def handleAct(signal: DeliverySignal.Act): DeferSignalState[Delivery]
 
-  def transitImpressed(signal: SIGNAL): STATE =
+  def transitImpressed(signal: SIGNAL): DeferSignalState[Delivery] =
     transit(signal) { _ =>
       DeliveryState.Impressed()
     }
-  def transitActioned(signal: SIGNAL): STATE =
+  def transitActioned(signal: SIGNAL): DeferSignalState[Delivery] =
     transit(signal) { _ =>
       DeliveryState.Actioned()
     }
 
-  override def deadLetter(signal: SIGNAL): STATE = {
+  override def deadLetter(signal: SIGNAL): DeferSignalState[Delivery] = {
     println("Dead letter:" + signal)
     this
   }
@@ -40,13 +41,15 @@ object DeliveryState {
 
     println("##[UnDelivered]")
 
-    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+    def handleDeliver(
+        signal: DeliverySignal.Deliver): DeferSignalState[Delivery] =
       transitImpressed(signal)
 
-    def handleImpress(signal: DeliverySignal.Impress): STATE =
+    def handleImpress(
+        signal: DeliverySignal.Impress): DeferSignalState[Delivery] =
       defer(signal)
 
-    def handleAct(signal: DeliverySignal.Act): STATE =
+    def handleAct(signal: DeliverySignal.Act): DeferSignalState[Delivery] =
       defer(signal)
 
   }
@@ -58,13 +61,15 @@ object DeliveryState {
 
     println("##[Delivered]")
 
-    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+    def handleDeliver(
+        signal: DeliverySignal.Deliver): DeferSignalState[Delivery] =
       transitImpressed(signal)
 
-    def handleImpress(signal: DeliverySignal.Impress): STATE =
+    def handleImpress(
+        signal: DeliverySignal.Impress): DeferSignalState[Delivery] =
       defer(signal)
 
-    def handleAct(signal: DeliverySignal.Act): STATE =
+    def handleAct(signal: DeliverySignal.Act): DeferSignalState[Delivery] =
       defer(signal)
 
   }
@@ -76,13 +81,15 @@ object DeliveryState {
 
     println("##[Impressed]")
 
-    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+    def handleDeliver(
+        signal: DeliverySignal.Deliver): DeferSignalState[Delivery] =
       deadLetter(signal)
 
-    def handleImpress(signal: DeliverySignal.Impress): STATE =
+    def handleImpress(
+        signal: DeliverySignal.Impress): DeferSignalState[Delivery] =
       transitActioned(signal)
 
-    def handleAct(signal: DeliverySignal.Act): STATE =
+    def handleAct(signal: DeliverySignal.Act): DeferSignalState[Delivery] =
       transitActioned(signal)
 
   }
@@ -94,13 +101,15 @@ object DeliveryState {
 
     println("##[Actioned]")
 
-    def handleDeliver(signal: DeliverySignal.Deliver): STATE =
+    def handleDeliver(
+        signal: DeliverySignal.Deliver): DeferSignalState[Delivery] =
       deadLetter(signal)
 
-    def handleImpress(signal: DeliverySignal.Impress): STATE =
+    def handleImpress(
+        signal: DeliverySignal.Impress): DeferSignalState[Delivery] =
       transitActioned(signal)
 
-    def handleAct(signal: DeliverySignal.Act): STATE =
+    def handleAct(signal: DeliverySignal.Act): DeferSignalState[Delivery] =
       transitActioned(signal)
   }
 
